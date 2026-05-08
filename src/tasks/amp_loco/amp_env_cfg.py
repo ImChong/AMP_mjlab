@@ -189,8 +189,8 @@ def make_amp_env_cfg() -> ManagerBasedRlEnvCfg:
   commands: dict[str, CommandTermCfg] = {
     "twist": UniformVelocityCommandCfg(
       entity_name="robot",
-      resampling_time_range=(3.0, 8.0),
-      rel_standing_envs=0.05,
+      resampling_time_range=(5.0, 10.0),
+      rel_standing_envs=0.30,
       rel_heading_envs=0.25,
       heading_command=True,
       heading_control_stiffness=0.5,
@@ -317,6 +317,19 @@ def make_amp_env_cfg() -> ManagerBasedRlEnvCfg:
     "joint_acc_l2": RewardTermCfg(func=mdp.joint_acc_l2, weight=-2.5e-7),
     "joint_pos_limits": RewardTermCfg(func=mdp.joint_pos_limits, weight=-10.0),
     "action_rate_l2": RewardTermCfg(func=mdp.action_rate_l2, weight=-0.01),
+    "zero_command_stability": RewardTermCfg(
+      func=mdp.zero_command_stability,
+      weight=1.0,
+      params={
+        "command_name": "twist",
+        "command_threshold": 0.1,
+      },
+    ),
+    "zero_command_action_rate_l2": RewardTermCfg(
+      func=mdp.zero_command_action_rate_l2,
+      weight=-0.02,
+      params={"command_name": "twist", "command_threshold": 0.1},
+    ),
     
     "foot_slip": RewardTermCfg(
       func=mdp.feet_slip,
