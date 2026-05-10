@@ -282,17 +282,17 @@ def make_amp_env_cfg() -> ManagerBasedRlEnvCfg:
   rewards = {
     "track_anchor_linear_velocity": RewardTermCfg(
       func=mdp.track_anchor_linear_velocity,
-      weight=1.0,
+      weight=1.5,
         params={"command_name": "twist", 
-                "std": 1.0,
+                "std": 0.75,
                 "mask_delay": True,
                 "delay_env_rew_ratio": 0.0,
                 "anchor_cfg": SceneEntityCfg("robot", body_names=()),},
     ),
     "track_anchor_angular_velocity": RewardTermCfg(
       func=mdp.track_anchor_angular_velocity,
-      weight=1.0,
-        params={"command_name": "twist", "std": 3.14,
+      weight=1.25,
+        params={"command_name": "twist", "std": 2.0,
                 "mask_delay": True,
                 "delay_env_rew_ratio": 0.0,
                 "anchor_cfg": SceneEntityCfg("robot", body_names=()),},
