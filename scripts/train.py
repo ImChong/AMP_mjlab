@@ -1,5 +1,7 @@
 """Script to train RL agent with RSL-RL."""
 
+import src.compat.warp_context_shim  # noqa: F401  # before mjlab (warp-lang>=1.13)
+
 import logging
 import os
 import sys
