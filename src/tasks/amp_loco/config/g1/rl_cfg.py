@@ -56,7 +56,7 @@ def g1_amp_ppo_runner_cfg() -> RslRlAmpRunnerCfg:
       entropy_coef=0.005,
       num_learning_epochs=5,
       num_mini_batches=4,
-      learning_rate=1.0e-3,
+      learning_rate=5.0e-4,
       schedule="adaptive",
       gamma=0.99,
       lam=0.95,
@@ -68,7 +68,7 @@ def g1_amp_ppo_runner_cfg() -> RslRlAmpRunnerCfg:
     logger="tensorboard",
     save_interval=100,
     num_steps_per_env=24,
-    max_iterations=100001,
+    max_iterations=120001,
     # AMP parameters
     amp_reward_coef=0.1,
     amp_motion_files=os.path.normpath(_MOTION_DATA_DIR),

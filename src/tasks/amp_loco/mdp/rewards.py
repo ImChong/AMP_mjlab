@@ -224,6 +224,70 @@ def soft_landing(
       cost = cost * active
   return cost
 
+def _zero_command_mask(
+  env: ManagerBasedRlEnv,
+  command_name: str,
+  command_threshold: float,
+) -> torch.Tensor:
+  command = env.command_manager.get_command(command_name)
+  assert command is not None, f"Command '{command_name}' not found."
+  linear_norm = torch.norm(command[:, :2], dim=1)
+  angular_norm = torch.abs(command[:, 2])
+  total_command = linear_norm + angular_norm
+  return total_command <= command_threshold
+
+
+def stand_still(
+  env: ManagerBasedRlEnv,
+  command_name: str,
+  command_threshold: float = 0.1,
+  asset_cfg: SceneEntityCfg = _DEFAULT_ASSET_CFG,
+) -> torch.Tensor:
+  """Penalize joint deviation from the default standing pose only at zero command."""
+  asset: Entity = env.scene[asset_cfg.name]
+  diff_angle = asset.data.joint_pos[:, asset_cfg.joint_ids] - asset.data.default_joint_pos[
+    :, asset_cfg.joint_ids
+  ]
+  cost = torch.sum(torch.square(diff_angle), dim=1)
+  return cost * _zero_command_mask(env, command_name, command_threshold).float()
+
+
+def zero_command_body_velocity_l2(
+  env: ManagerBasedRlEnv,
+  command_name: str,
+  command_threshold: float = 0.1,
+  body_cfg: SceneEntityCfg = SceneEntityCfg("robot", body_names=()),
+) -> torch.Tensor:
+  """Penalize root/body velocity only when the command is zero."""
+  asset: Entity = env.scene[body_cfg.name]
+  body_id = body_cfg.body_ids[0]
+  lin_vel_w = asset.data.body_link_lin_vel_w[:, body_id, :]
+  ang_vel_w = asset.data.body_link_ang_vel_w[:, body_id, :]
+  cost = (
+    torch.sum(torch.square(lin_vel_w[:, :2]), dim=1)
+    + 0.5 * torch.square(ang_vel_w[:, 2])
+    + 0.2 * torch.sum(torch.square(ang_vel_w[:, :2]), dim=1)
+  )
+  return cost * _zero_command_mask(env, command_name, command_threshold).float()
+
+
+def zero_command_feet_slip(
+  env: ManagerBasedRlEnv,
+  sensor_name: str,
+  command_name: str,
+  command_threshold: float = 0.1,
+  asset_cfg: SceneEntityCfg = _DEFAULT_ASSET_CFG,
+) -> torch.Tensor:
+  """Penalize foot xy slip in contact only when command is zero."""
+  asset: Entity = env.scene[asset_cfg.name]
+  contact_sensor: ContactSensor = env.scene[sensor_name]
+  assert contact_sensor.data.found is not None
+  in_contact = (contact_sensor.data.found > 0).float()
+  foot_vel_xy = asset.data.site_lin_vel_w[:, asset_cfg.site_ids, :2]
+  cost = torch.sum(torch.square(torch.norm(foot_vel_xy, dim=-1)) * in_contact, dim=1)
+  return cost * _zero_command_mask(env, command_name, command_threshold).float()
+
+
 def self_collision_cost(
   env: ManagerBasedRlEnv,
   sensor_name: str,

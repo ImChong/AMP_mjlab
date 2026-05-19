@@ -190,7 +190,9 @@ def make_amp_env_cfg() -> ManagerBasedRlEnvCfg:
     "twist": UniformVelocityCommandCfg(
       entity_name="robot",
       resampling_time_range=(3.0, 8.0),
-      rel_standing_envs=0.05,
+      # Increase explicit zero-command samples so the policy learns a distinct
+      # standing mode instead of tiny in-place gait cycles.
+      rel_standing_envs=0.25,
       rel_heading_envs=0.25,
       heading_command=True,
       heading_control_stiffness=0.5,
@@ -321,6 +323,34 @@ def make_amp_env_cfg() -> ManagerBasedRlEnvCfg:
     "foot_slip": RewardTermCfg(
       func=mdp.feet_slip,
       weight=-0.25,
+      params={
+        "sensor_name": "feet_ground_contact",
+        "command_name": "twist",
+        "command_threshold": 0.1,
+        "asset_cfg": SceneEntityCfg("robot", site_names=()),  # Set per-robot.
+      },
+    ),
+    "stand_still": RewardTermCfg(
+      func=mdp.stand_still,
+      weight=-1.0,
+      params={
+        "command_name": "twist",
+        "command_threshold": 0.1,
+        "asset_cfg": SceneEntityCfg("robot", joint_names=".*"),
+      },
+    ),
+    "zero_command_body_velocity_l2": RewardTermCfg(
+      func=mdp.zero_command_body_velocity_l2,
+      weight=-2.0,
+      params={
+        "command_name": "twist",
+        "command_threshold": 0.1,
+        "body_cfg": SceneEntityCfg("robot", body_names=()),  # Set per-robot.
+      },
+    ),
+    "zero_command_foot_slip": RewardTermCfg(
+      func=mdp.zero_command_feet_slip,
+      weight=-0.5,
       params={
         "sensor_name": "feet_ground_contact",
         "command_name": "twist",
