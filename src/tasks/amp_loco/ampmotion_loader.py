@@ -17,6 +17,7 @@ class MotionLoader:
         feet_indexes: int,
         device: str = "cpu",
         recovery_dir: str | None = None,
+        standing_dir: str | None = None,
     ):
         # 存储所有运动数据的列表
         self.motion_data: list[dict] = []
@@ -26,6 +27,10 @@ class MotionLoader:
         # 加载正常运动数据
         self.motion_data = self._load_dir(motion_dir, device)
         assert len(self.motion_data) > 0, f"No npz files found in: {motion_dir}"
+
+        # 追加站立参考片段，供零速度指令时的 reset / AMP 采样
+        if standing_dir is not None and os.path.isdir(standing_dir):
+            self.motion_data.extend(self._load_dir(standing_dir, device))
 
         # 加载恢复运动数据
         if recovery_dir is not None and os.path.isdir(recovery_dir):

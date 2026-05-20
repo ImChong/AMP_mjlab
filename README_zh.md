@@ -81,8 +81,11 @@ python scripts/list_envs.py --keyword AMP
 
 
 ```bash
+# 从零开始：4096 环境、平地、100000 iterations，每 2000 iter 保存 checkpoint
 python scripts/train.py Unitree-G1-AMP-Flat --env.scene.num-envs=4096
 ```
+
+零速度站立参考数据位于 `src/assets/motions/g1/amp/Standing/`（约 7.5s）。可用 `scripts/make_standing_npz.py` 从其他片段重新生成。
 
 
 日志默认在：
@@ -118,7 +121,7 @@ python scripts/csv_to_npz.py --help
 推荐目录组织：
 
 - 原始 CSV：`motion_data_csv/amp`
-- 转换后 NPZ：`src/assets/motions/g1/amp/WalkandRun` 与 `src/assets/motions/g1/amp/Recovery`
+- 转换后 NPZ：`src/assets/motions/g1/amp/WalkandRun`、`src/assets/motions/g1/amp/Recovery` 与 `src/assets/motions/g1/amp/Standing`（站立参考）
 
 只要上述目录中存在可用 NPZ，训练配置会自动加载。
 

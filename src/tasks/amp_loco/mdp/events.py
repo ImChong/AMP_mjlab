@@ -40,6 +40,7 @@ class MotionResetManager:
         env: ManagerBasedRlEnv,
         motion_dir: str,
         recovery_dir: str | None = None,
+        standing_dir: str | None = None,
     ) -> None:
         if motion_dir in self.walk_run_frames:
             return
@@ -51,6 +52,7 @@ class MotionResetManager:
             feet_indexes=0,
             device=str(env.device),
             recovery_dir=recovery_dir,
+            standing_dir=standing_dir,
         )
 
         self.walk_run_frames[motion_dir] = self._concat_frames(loader.motion_data)
@@ -192,6 +194,7 @@ def init_motion_loader(
     env_ids: torch.Tensor | None,
     motion_dir: str,
     recovery_dir: str | None = None,
+    standing_dir: str | None = None,
     delay_reset_env_ratio: float = 0.0,
     max_delay_steps: int = 0,
 ) -> None:
@@ -200,6 +203,7 @@ def init_motion_loader(
         env=env,
         motion_dir=motion_dir,
         recovery_dir=recovery_dir,
+        standing_dir=standing_dir,
     )
 
     # Install DelayedTerminationManager if requested.

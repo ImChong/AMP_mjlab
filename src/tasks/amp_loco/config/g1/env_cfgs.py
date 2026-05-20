@@ -108,9 +108,11 @@ def g1_amp_rough_env_cfg(play: bool = False) -> ManagerBasedRlEnvCfg:
   )
   _motion_dir = os.path.abspath(os.path.join(_motion_base, "WalkandRun"))
   _recovery_dir = os.path.abspath(os.path.join(_motion_base, "Recovery"))
+  _standing_dir = os.path.abspath(os.path.join(_motion_base, "Standing"))
 
   cfg.events["init_motion_loader"].params["motion_dir"] = _motion_dir
   cfg.events["init_motion_loader"].params["recovery_dir"] = _recovery_dir
+  cfg.events["init_motion_loader"].params["standing_dir"] = _standing_dir
   cfg.events["reset_from_motion"].params["motion_dir"] = _motion_dir
 
   cfg.rewards["track_anchor_linear_velocity"].params["anchor_cfg"].body_names = (anchor_name,)

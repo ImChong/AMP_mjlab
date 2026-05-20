@@ -167,6 +167,51 @@ def track_root_height(
   reward = torch.exp(-height_error / std**2)
   return _apply_delay_env_reward_mask_only(env, reward, mask_delay, delay_env_rew_ratio)
 
+
+def zero_command_stability(
+  env: ManagerBasedRlEnv,
+  command_name: str,
+  lin_vel_std: float = 0.25,
+  yaw_vel_std: float = 0.25,
+  joint_vel_std: float = 2.0,
+  command_threshold: float = 0.1,
+  asset_cfg: SceneEntityCfg = _DEFAULT_ASSET_CFG,
+) -> torch.Tensor:
+  """Reward quiet standing when the commanded velocity is near zero."""
+  asset: Entity = env.scene[asset_cfg.name]
+  command = env.command_manager.get_command(command_name)
+  assert command is not None, f"Command '{command_name}' not found."
+
+  command_norm = torch.norm(command[:, :2], dim=1) + torch.abs(command[:, 2])
+  zero_cmd = (command_norm <= command_threshold).float()
+
+  base_lin_xy_error = torch.sum(torch.square(asset.data.root_link_lin_vel_b[:, :2]), dim=1)
+  base_yaw_error = torch.square(asset.data.root_link_ang_vel_b[:, 2])
+  joint_vel_error = torch.mean(torch.square(asset.data.joint_vel[:, asset_cfg.joint_ids]), dim=1)
+
+  reward = (
+    torch.exp(-base_lin_xy_error / lin_vel_std**2)
+    * torch.exp(-base_yaw_error / yaw_vel_std**2)
+    * torch.exp(-joint_vel_error / joint_vel_std**2)
+  )
+  return reward * zero_cmd
+
+
+def zero_command_action_rate_l2(
+  env: ManagerBasedRlEnv,
+  command_name: str,
+  command_threshold: float = 0.1,
+) -> torch.Tensor:
+  """Penalize action jitter only when the command is near zero."""
+  command = env.command_manager.get_command(command_name)
+  assert command is not None, f"Command '{command_name}' not found."
+
+  command_norm = torch.norm(command[:, :2], dim=1) + torch.abs(command[:, 2])
+  zero_cmd = (command_norm <= command_threshold).float()
+  action_diff = env.action_manager.action - env.action_manager.prev_action
+  return torch.sum(torch.square(action_diff), dim=1) * zero_cmd
+
+
 def feet_slip(
   env: ManagerBasedRlEnv,
   sensor_name: str,
