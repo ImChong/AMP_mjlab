@@ -28,8 +28,10 @@ class TrainConfig:
   agent: RslRlBaseRunnerCfg
   motion_file: str | None = None
   video: bool = False
-  video_length: int = 200
-  video_interval: int = 2000
+  video_duration_s: float = 30.0
+  video_sync_checkpoint: bool = True
+  video_length: int | None = None
+  video_interval: int | None = None
   enable_nan_guard: bool = False
   torchrunx_log_dir: str | None = None
   gpu_ids: list[int] | Literal["all"] | None = field(default_factory=lambda: [0])
@@ -39,6 +41,44 @@ class TrainConfig:
     env_cfg = load_env_cfg(task_id)
     agent_cfg = load_rl_cfg(task_id)
     return TrainConfig(env=env_cfg, agent=agent_cfg)
+
+
+def _resolve_video_settings(cfg: TrainConfig) -> tuple[int, int]:
+  """Map video cadence to checkpoint saves and duration to env control steps."""
+  control_dt = cfg.env.decimation * cfg.env.sim.mujoco.timestep
+  if cfg.video_interval is not None:
+    interval = cfg.video_interval
+  elif cfg.video_sync_checkpoint:
+    interval = cfg.agent.save_interval * cfg.agent.num_steps_per_env
+  else:
+    interval = 2000
+
+  if cfg.video_length is not None:
+    length = cfg.video_length
+  else:
+    length = max(1, int(round(cfg.video_duration_s / control_dt)))
+
+  return interval, length
+
+
+def _normalize_bool_flag_argv(argv: list[str], flag: str) -> list[str]:
+  """Expand bare ``--flag`` to ``--flag True`` for mjlab/TYRO boolean parsing."""
+  normalized: list[str] = []
+  i = 0
+  while i < len(argv):
+    token = argv[i]
+    if token == flag:
+      next_token = argv[i + 1] if i + 1 < len(argv) else None
+      if next_token is None or next_token.startswith("-"):
+        normalized.extend([flag, "True"])
+      else:
+        normalized.extend([flag, next_token])
+        i += 1
+      i += 1
+      continue
+    normalized.append(token)
+    i += 1
+  return normalized
 
 
 def run_train(task_id: str, cfg: TrainConfig, log_dir: Path) -> None:
@@ -106,14 +146,21 @@ def run_train(task_id: str, cfg: TrainConfig, log_dir: Path) -> None:
 
   # Only record videos on rank 0 to avoid multiple workers writing to the same files.
   if cfg.video and rank == 0:
+    video_interval, video_length = _resolve_video_settings(cfg)
+    control_dt = cfg.env.decimation * cfg.env.sim.mujoco.timestep
     env = VideoRecorder(  # 写一个自己的包装器，用于motion tracking
       env,
       video_folder=Path(log_dir) / "videos" / "train",
-      step_trigger=lambda step: step % cfg.video_interval == 0,
-      video_length=cfg.video_length,
+      step_trigger=lambda step, interval=video_interval: step % interval == 0,
+      video_length=video_length,
       disable_logger=True,
     )
-    print("[INFO] Recording videos during training.")
+    print(
+      "[INFO] Recording videos during training: "
+      f"every {cfg.agent.save_interval} iterations "
+      f"({video_interval} env steps), "
+      f"{cfg.video_duration_s:.0f}s per clip ({video_length} frames @ {control_dt:.3f}s)."
+    )
 
   env = RslRlVecEnvWrapper(env, clip_actions=cfg.agent.clip_actions) # 因为我要接上自己的rsl_rl，所以要重新写一个包装器
 
@@ -208,9 +255,15 @@ def main():
     config=mjlab.TYRO_FLAGS,
   )
 
+  train_args = _normalize_bool_flag_argv(
+    remaining_args, "--video"
+  )
+  train_args = _normalize_bool_flag_argv(
+    train_args, "--enable-nan-guard"
+  )
   args = tyro.cli(
     TrainConfig,
-    args=remaining_args,
+    args=train_args,
     default=TrainConfig.from_task(chosen_task),
     prog=sys.argv[0] + f" {chosen_task}",
     config=mjlab.TYRO_FLAGS,

@@ -83,6 +83,9 @@ python scripts/list_envs.py --keyword AMP
 ```bash
 # 从零开始：4096 环境、平地、100000 iterations，每 2000 iter 保存 checkpoint
 python scripts/train.py Unitree-G1-AMP-Flat --env.scene.num-envs=4096
+
+# 同上，并在每次保存 checkpoint（每 2000 iter）时录一段 30s 视频（headless）
+python scripts/train.py Unitree-G1-AMP-Flat --env.scene.num-envs=4096 --video
 ```
 
 零速度站立参考数据位于 `src/assets/motions/g1/amp/Standing/`（约 7.5s）。可用 `scripts/make_standing_npz.py` 从其他片段重新生成。
