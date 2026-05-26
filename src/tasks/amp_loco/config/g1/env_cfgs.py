@@ -118,6 +118,7 @@ def g1_amp_rough_env_cfg(play: bool = False) -> ManagerBasedRlEnvCfg:
   cfg.rewards["track_anchor_linear_velocity"].params["anchor_cfg"].body_names = (anchor_name,)
   cfg.rewards["track_anchor_angular_velocity"].params["anchor_cfg"].body_names = (anchor_name,)
   cfg.rewards["foot_slip"].params["asset_cfg"].site_names = site_names
+  cfg.rewards["zero_command_foot_slip"].params["asset_cfg"].site_names = site_names
   cfg.rewards["self_collisions"] = RewardTermCfg(
     func=mdp.self_collision_cost,
     weight=-0.1,

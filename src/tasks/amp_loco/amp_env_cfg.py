@@ -331,6 +331,17 @@ def make_amp_env_cfg() -> ManagerBasedRlEnvCfg:
       weight=-0.02,
       params={"command_name": "twist", "command_threshold": 0.1},
     ),
+    "zero_command_foot_slip": RewardTermCfg(
+      func=mdp.feet_slip,
+      weight=-1.0,
+      params={
+        "sensor_name": "feet_ground_contact",
+        "command_name": "twist",
+        "command_threshold": 0.1,
+        "active_on_zero_command": True,
+        "asset_cfg": SceneEntityCfg("robot", site_names=()),  # Set per-robot.
+      },
+    ),
     
     "foot_slip": RewardTermCfg(
       func=mdp.feet_slip,

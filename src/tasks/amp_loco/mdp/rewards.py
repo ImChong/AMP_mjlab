@@ -217,6 +217,7 @@ def feet_slip(
   sensor_name: str,
   command_name: str,
   command_threshold: float = 0.01,
+  active_on_zero_command: bool = False,
   asset_cfg: SceneEntityCfg = _DEFAULT_ASSET_CFG,
 ) -> torch.Tensor:
   """Penalize foot sliding (xy velocity while in contact)."""
@@ -227,7 +228,10 @@ def feet_slip(
   linear_norm = torch.norm(command[:, :2], dim=1)
   angular_norm = torch.abs(command[:, 2])
   total_command = linear_norm + angular_norm
-  active = (total_command > command_threshold).float()
+  if active_on_zero_command:
+    active = (total_command <= command_threshold).float()
+  else:
+    active = (total_command > command_threshold).float()
   assert contact_sensor.data.found is not None
   in_contact = (contact_sensor.data.found > 0).float()  # [B, N]
   foot_vel_xy = asset.data.site_lin_vel_w[:, asset_cfg.site_ids, :2]  # [B, N, 2]
