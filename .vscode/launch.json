@@ -1,0 +1,79 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "AMP train Flat (tiny, step-by-step)",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "${workspaceFolder}/scripts/train.py",
+      "cwd": "${workspaceFolder}",
+      "python": "/home/mot/anaconda3/envs/env_amp_mjlab/bin/python",
+      "console": "integratedTerminal",
+      "justMyCode": false,
+      "subProcess": true,
+      "env": {
+        "PYTHONPATH": "${workspaceFolder}",
+        "PYTHONUNBUFFERED": "1",
+        "MUJOCO_GL": "egl",
+        "CUDA_LAUNCH_BLOCKING": "1",
+        "TORCH_SHOW_CPP_STACKTRACES": "1"
+      },
+      "args": [
+        "Unitree-G1-AMP-Flat",
+        "--env.scene.num-envs=1",
+        "--agent.max-iterations=2",
+        "--agent.num-steps-per-env=4",
+        "--agent.save-interval=1",
+        "--agent.run-name=vscode_debug_flat",
+        "--enable-nan-guard",
+        "True"
+      ]
+    },
+    {
+      "name": "AMP train Rough (tiny, step-by-step)",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "${workspaceFolder}/scripts/train.py",
+      "cwd": "${workspaceFolder}",
+      "python": "/home/mot/anaconda3/envs/env_amp_mjlab/bin/python",
+      "console": "integratedTerminal",
+      "justMyCode": false,
+      "subProcess": true,
+      "env": {
+        "PYTHONPATH": "${workspaceFolder}",
+        "PYTHONUNBUFFERED": "1",
+        "MUJOCO_GL": "egl",
+        "CUDA_LAUNCH_BLOCKING": "1",
+        "TORCH_SHOW_CPP_STACKTRACES": "1"
+      },
+      "args": [
+        "Unitree-G1-AMP-Rough",
+        "--env.scene.num-envs=1",
+        "--agent.max-iterations=2",
+        "--agent.num-steps-per-env=4",
+        "--agent.save-interval=1",
+        "--agent.run-name=vscode_debug_rough",
+        "--enable-nan-guard",
+        "True"
+      ]
+    },
+    {
+      "name": "List AMP tasks",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "${workspaceFolder}/scripts/list_envs.py",
+      "cwd": "${workspaceFolder}",
+      "python": "/home/mot/anaconda3/envs/env_amp_mjlab/bin/python",
+      "console": "integratedTerminal",
+      "justMyCode": false,
+      "env": {
+        "PYTHONPATH": "${workspaceFolder}",
+        "PYTHONUNBUFFERED": "1"
+      },
+      "args": [
+        "--keyword",
+        "AMP"
+      ]
+    }
+  ]
+}
