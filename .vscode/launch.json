@@ -58,6 +58,84 @@
       ]
     },
     {
+      "name": "AMP play Flat (trained checkpoint)",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "${workspaceFolder}/scripts/play.py",
+      "cwd": "${workspaceFolder}",
+      "python": "/home/mot/anaconda3/envs/env_amp_mjlab/bin/python",
+      "console": "integratedTerminal",
+      "justMyCode": false,
+      "subProcess": true,
+      "env": {
+        "PYTHONPATH": "${workspaceFolder}",
+        "PYTHONUNBUFFERED": "1",
+        "MUJOCO_GL": "egl",
+        "CUDA_LAUNCH_BLOCKING": "1",
+        "TORCH_SHOW_CPP_STACKTRACES": "1"
+      },
+      "args": [
+        "Unitree-G1-AMP-Flat",
+        "--checkpoint-file",
+        "${input:ampCheckpointFile}",
+        "--num-envs",
+        "1",
+        "--viewer",
+        "viser",
+        "--export-onnx",
+        "False"
+      ]
+    },
+    {
+      "name": "AMP play Rough (trained checkpoint)",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "${workspaceFolder}/scripts/play.py",
+      "cwd": "${workspaceFolder}",
+      "python": "/home/mot/anaconda3/envs/env_amp_mjlab/bin/python",
+      "console": "integratedTerminal",
+      "justMyCode": false,
+      "subProcess": true,
+      "env": {
+        "PYTHONPATH": "${workspaceFolder}",
+        "PYTHONUNBUFFERED": "1",
+        "MUJOCO_GL": "egl",
+        "CUDA_LAUNCH_BLOCKING": "1",
+        "TORCH_SHOW_CPP_STACKTRACES": "1"
+      },
+      "args": [
+        "Unitree-G1-AMP-Rough",
+        "--checkpoint-file",
+        "${input:ampCheckpointFile}",
+        "--num-envs",
+        "1",
+        "--viewer",
+        "viser",
+        "--export-onnx",
+        "False"
+      ]
+    },
+    {
+      "name": "Inspect AMP reference motion NPZ (text preview)",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "${workspaceFolder}/scripts/analyze_base_motion.py",
+      "cwd": "${workspaceFolder}",
+      "python": "/home/mot/anaconda3/envs/env_amp_mjlab/bin/python",
+      "console": "integratedTerminal",
+      "justMyCode": false,
+      "env": {
+        "PYTHONPATH": "${workspaceFolder}",
+        "PYTHONUNBUFFERED": "1"
+      },
+      "args": [
+        "--npz",
+        "${input:ampMotionNpz}",
+        "--preview",
+        "20"
+      ]
+    },
+    {
       "name": "List AMP tasks",
       "type": "debugpy",
       "request": "launch",
@@ -74,6 +152,20 @@
         "--keyword",
         "AMP"
       ]
+    }
+  ],
+  "inputs": [
+    {
+      "id": "ampCheckpointFile",
+      "type": "promptString",
+      "description": "Path to trained AMP checkpoint (.pt)",
+      "default": "${workspaceFolder}/logs/rsl_rl/g1_amp_locomotion/<run_dir>/model_<iter>.pt"
+    },
+    {
+      "id": "ampMotionNpz",
+      "type": "promptString",
+      "description": "Path to AMP reference motion NPZ",
+      "default": "${workspaceFolder}/src/assets/motions/g1/amp/WalkandRun/walk_forward_loop_002__A024.npz"
     }
   ]
 }
